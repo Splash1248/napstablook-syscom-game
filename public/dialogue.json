@@ -1,0 +1,26 @@
+{
+  "neutral": ["nnnnnnggghhh.", "just pluggin along...", "i'm fine, thanks."],
+  "check": "oh, i'm REAL funny.",
+  "flirt": {
+    "default": "i'd just weigh you down.",
+    "dapper": "oh no... umm..."
+  },
+  "threat": {
+    "default": "go ahead, do it.",
+    "dapper": "i knew it..."
+  },
+  "cheer": [
+    "heh...",
+    "heh heh...",
+    "let me try... i call it \"dapper blook\" do you like it...",
+    "oh gee..."
+  ],
+  "defeat": [
+    "umm... you do know you cant kill ghosts, right?",
+    "we're sorta incorporeal and all",
+    "i was just lowering my hp because i didnt want to be rude",
+    "sorry... i just made this more awkward...",
+    "pretend you beat me...",
+    "oooooooooo"
+  ]
+}
