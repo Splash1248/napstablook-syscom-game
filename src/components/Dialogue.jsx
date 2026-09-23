@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react';
 
-function Dialogue({ taskType, onComplete }) {
+function Dialogue({ taskType, sequence, onComplete }) {
   const [text, setText] = useState('...');
+  const [seqIndex, setSeqIndex] = useState(0);
 
   useEffect(() => {
+    if (sequence && sequence.length > 0) {
+      setText(sequence[seqIndex]);
+      return;
+    }
+
     fetch('/dialogue.json')
       .then(r => r.json())
       .then(data => {
@@ -24,16 +30,30 @@ function Dialogue({ taskType, onComplete }) {
         }
       })
       .catch(e => console.error(e));
+  }, [taskType, sequence, seqIndex]);
 
-    const timer = setTimeout(() => {
+  const handleNext = () => {
+    if (sequence && sequence.length > 0) {
+      if (seqIndex + 1 < sequence.length) {
+        setSeqIndex(prev => prev + 1);
+      } else {
+        onComplete();
+      }
+    } else {
       onComplete();
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleNext();
     }, 4000);
 
     return () => clearTimeout(timer);
-  }, [taskType]); // Removed onComplete to prevent infinite re-renders
+  }, [taskType, sequence, seqIndex]);
 
   return (
-    <div className="screen-container" onClick={onComplete} style={{cursor: 'pointer'}}>
+    <div className="screen-container" onClick={handleNext} style={{cursor: 'pointer'}}>
       <div className="bg-overlay"></div>
       <div className="content-layer dialogue-phase">
         <div className="enemy-sprite-container" style={{ flexGrow: 0, marginTop: '50px' }}>

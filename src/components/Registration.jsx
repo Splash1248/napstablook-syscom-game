@@ -16,7 +16,7 @@ function Registration({ onRegister }) {
       <div className="screen-container">
         <div className="bg-overlay"></div>
         <div className="content-layer" style={{ justifyContent: 'center', alignItems: 'center' }}>
-          <h1>Napstablook Encounters</h1>
+          <h1>A Wild Napstablook Appeared!</h1>
           <form onSubmit={handleSubmit} className="form-group" style={{ marginTop: '40px' }}>
             <label>Player Name</label>
             <input

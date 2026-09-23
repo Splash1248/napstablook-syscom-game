@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Registration from './components/Registration'
 import BattleUI from './components/BattleUI'
 import Terminal from './components/Terminal'
@@ -23,9 +23,26 @@ function App() {
   const [isEndingDialogue, setIsEndingDialogue] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
 
+  const pacifistSequence = [
+    "i usually come to here because there's nobody around...",
+    "but today i met somebody nice...",
+    "... oh, i'm rambling again",
+    "i'll get out of your way"
+  ];
+
+  const genocideSequence = [
+    "umm... you do know you cant kill ghosts, right? we're sorta incorporeal and all",
+    "i was just lowering my hp because i didnt want to be rude",
+    "sorry... i just made this more awkward...",
+    "pretend you beat me...",
+    "oooooooooo"
+  ];
+
   const [globalTimeRemaining, setGlobalTimeRemaining] = useState(600)
   const [terminalTimeRemaining, setTerminalTimeRemaining] = useState(150)
   const [terminalTimedOut, setTerminalTimedOut] = useState(false)
+  
+  const audioRef = useRef(null)
 
   // Global Timer Hook
   useEffect(() => {
@@ -63,14 +80,27 @@ function App() {
     return () => clearInterval(timer);
   }, [gameState]);
 
+  useEffect(() => {
+    if (gameState === 'GAME_OVER' || gameState === 'VICTORY') {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = new Audio('/assets/Audio/determination.mp3');
+        audioRef.current.loop = true;
+        audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+      }
+    }
+  }, [gameState]);
+
   const handleRegister = (name, team) => {
     setPlayerName(name);
     setTeamName(team);
     setGameState('PLAYER_TURN');
 
-    const audio = new Audio('/assets/Audio/ghost_fight.mp3');
-    audio.loop = true;
-    audio.play().catch(e => console.error("Audio play failed:", e));
+    if (!audioRef.current) {
+      audioRef.current = new Audio('/assets/Audio/ghost_fight.mp3');
+      audioRef.current.loop = true;
+      audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+    }
   }
 
   const handleTaskComplete = () => {
@@ -187,6 +217,7 @@ function App() {
       {gameState === 'DIALOGUE_PHASE' && (
         <Dialogue
           taskType={isEndingDialogue ? 'defeat' : (currentTask?.type || 'fight')}
+          sequence={isEndingDialogue ? (fightSuccesses >= 4 ? genocideSequence : pacifistSequence) : null}
           onComplete={() => setGameState(isEndingDialogue ? 'VICTORY' : 'ENEMY_TURN')}
         />
       )}
@@ -229,7 +260,7 @@ function App() {
             <p>Congratulations, {playerName}! {teamName ? `(Team: ${teamName})` : ''}</p>
             <div style={{ margin: '30px 0', textAlign: 'left', lineHeight: '2' }}>
               <p>Time Taken: {formatTime(600 - globalTimeRemaining)}</p>
-              <p>Final Score: {globalTimeRemaining}</p>
+              <p>Final Score: {Math.round(globalTimeRemaining / 6)} / 100</p>
               <p>Route: {fightSuccesses >= 4 ? 'Genocide' : 'Pacifist'}</p>
             </div>
             {fightSuccesses >= 4 && (
