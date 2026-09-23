@@ -66,12 +66,13 @@ function CanvasDodger({ hp, maxHp, onHit, onComplete }) {
           tears.push({
             x: Math.random() * canvas.width,
             y: -20,
-            width: 10, height: 20,
-            vy: 2 + Math.random() * 2,
+            width: 15, height: 30,
+            vy: 1 + Math.random() * 1.5,
             type: 'normal',
             startX: Math.random() * canvas.width,
             time: 0,
-            image: tearImage
+            image: tearImage,
+            damage: 2
           });
         }
       } else {
@@ -79,11 +80,12 @@ function CanvasDodger({ hp, maxHp, onHit, onComplete }) {
           spawnTimer = 0;
           tears.push({
             x: Math.random() * canvas.width,
-            y: -30,
-            width: 20, height: 30,
-            vy: 0.9,
+            y: -40,
+            width: 32, height: 40,
+            vy: 1.5,
             type: 'heavy',
-            image: bigTearImage
+            image: bigTearImage,
+            damage: 3
           });
         }
       }
@@ -94,14 +96,14 @@ function CanvasDodger({ hp, maxHp, onHit, onComplete }) {
         if (t.type === 'normal') {
           t.time += 0.05;
           t.y += t.vy;
-          t.vy += 0.05; // gravity
+          t.vy += 0.02; // gravity
           t.x = t.startX + Math.sin(t.time) * 30;
         } else if (t.type === 'heavy') {
           t.y += t.vy;
           if (t.y > canvas.height - 100) {
             // Split
-            tears.push({ x: t.x, y: t.y, width: 10, height: 20, vx: -3, vy: -1, type: 'split', image: tearImage });
-            tears.push({ x: t.x, y: t.y, width: 10, height: 20, vx: 3, vy: -1, type: 'split', image: tearImage });
+            tears.push({ x: t.x, y: t.y, width: 10, height: 20, vx: -3, vy: -1, type: 'split', image: tearImage, damage: 2 });
+            tears.push({ x: t.x, y: t.y, width: 10, height: 20, vx: 3, vy: -1, type: 'split', image: tearImage, damage: 2 });
             tears.splice(i, 1);
             continue;
           }
@@ -126,7 +128,7 @@ function CanvasDodger({ hp, maxHp, onHit, onComplete }) {
             player.y < t.y + t.height &&
             player.y + player.height > t.y
           ) {
-            onHit();
+            onHit(t.damage || 2);
             isInvulnerable = true;
             invulnTimer = now + 1000;
             break;

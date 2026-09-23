@@ -1,5 +1,6 @@
 .App {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100vw;
@@ -203,4 +204,73 @@ canvas {
 .sub-menu button {
   width: 80%;
   text-align: left;
+}
+
+/* New UI Elements */
+
+.narrator-box {
+  width: 800px;
+  min-height: 120px;
+  border: 4px solid white;
+  background-color: black;
+  color: white;
+  padding: 20px;
+  font-size: 1.2rem;
+  font-family: var(--retro-font);
+  box-sizing: border-box;
+  text-align: left;
+  z-index: 1000;
+  margin-top: 20px;
+}
+
+.side-panel {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  width: 350px;
+  height: 80%;
+  border: 2px solid white;
+  background-color: black;
+  color: white;
+  padding: 15px;
+  font-size: 1rem;
+  font-family: monospace;
+  box-sizing: border-box;
+  z-index: 1000;
+  overflow-y: auto;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+
+.boss-hp-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--retro-font);
+  font-size: 1.5rem;
+  margin-top: 10px;
+  justify-content: center;
+}
+
+.boss-hp-bar {
+  width: 200px;
+  height: 20px;
+  background-color: red;
+  border: 2px solid white;
+}
+
+.boss-hp-fill {
+  height: 100%;
+  background-color: lime;
+  transition: width 0.3s;
+}
+
+.next-button {
+  margin-top: 10px;
+  width: 100%;
+  font-family: monospace;
+  font-size: 1.2rem;
+  padding: 10px;
 }

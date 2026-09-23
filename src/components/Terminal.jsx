@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { TERMINAL_MANUAL } from '../tasks';
 
-function Terminal({ task, onComplete, onFail }) {
+function Terminal({ task, onComplete, setHelpOpen, terminalTimedOut }) {
   const [output, setOutput] = useState([
     "Terminal initialized.",
     "Type 'help' for manual.",
@@ -10,6 +10,7 @@ function Terminal({ task, onComplete, onFail }) {
   ]);
   const [input, setInput] = useState('');
   const [stepIndex, setStepIndex] = useState(0);
+  const [isSequenceComplete, setIsSequenceComplete] = useState(false);
   const endRef = useRef(null);
 
   const getFallbackOutput = (cmdString) => {
@@ -50,8 +51,9 @@ function Terminal({ task, onComplete, onFail }) {
     setInput('');
 
     if (cmd.toLowerCase() === 'help') {
-      newOutput.push(TERMINAL_MANUAL);
+      newOutput.push("[SYSTEM] Help manual toggled.");
       setOutput(newOutput);
+      setHelpOpen(prev => !prev);
       return;
     }
 
@@ -66,22 +68,45 @@ function Terminal({ task, onComplete, onFail }) {
     }
 
     const currentExpectedStep = task.steps[stepIndex];
+    let isMatch = false;
+    let matchedOutput = "";
     
-    if (cmd.toLowerCase() === currentExpectedStep.cmd.toLowerCase()) {
-      newOutput.push(currentExpectedStep.output);
+    // Superset Logic for portscan -> fullscan
+    if (currentExpectedStep && currentExpectedStep.cmd.startsWith("portscan")) {
+      const targetIp = currentExpectedStep.cmd.split(" ")[1];
+      if (cmd.toLowerCase() === `fullscan ${targetIp}`) {
+        isMatch = true;
+        matchedOutput = currentExpectedStep.output + " (Superset execution via fullscan)";
+      }
+    }
+
+    if (currentExpectedStep && cmd.toLowerCase() === currentExpectedStep.cmd.toLowerCase()) {
+      isMatch = true;
+      matchedOutput = currentExpectedStep.output;
+    }
+
+    if (isMatch) {
+      newOutput.push(matchedOutput);
       const nextStep = stepIndex + 1;
       setStepIndex(nextStep);
       
       if (nextStep >= task.steps.length) {
-        newOutput.push("TASK SEQUENCE COMPLETE. Switching phase...");
+        newOutput.push("TASK SEQUENCE COMPLETE. Awaiting next phase...");
         setOutput(newOutput);
-        setTimeout(() => onComplete(), 2000);
+        setIsSequenceComplete(true);
       } else {
         setOutput(newOutput);
       }
     } else {
-      newOutput.push(getFallbackOutput(cmd));
-      setOutput(newOutput);
+      // Idempotency: Check if they repeated a previous step
+      const previousMatch = task.steps.slice(0, stepIndex).find(s => s.cmd.toLowerCase() === cmd.toLowerCase() || (s.cmd.startsWith("portscan") && cmd.toLowerCase() === `fullscan ${s.cmd.split(" ")[1]}`));
+      if (previousMatch) {
+        newOutput.push(previousMatch.output);
+        setOutput(newOutput);
+      } else {
+        newOutput.push(getFallbackOutput(cmd));
+        setOutput(newOutput);
+      }
     }
   };
 
@@ -103,15 +128,20 @@ function Terminal({ task, onComplete, onFail }) {
           ))}
           <div ref={endRef} />
         </div>
-        <form onSubmit={handleCommand} className="terminal-input-line">
-          <span>{'>'}</span>
-          <input 
-            type="text" 
-            value={input} 
-            onChange={(e) => setInput(e.target.value)} 
-            autoFocus
-          />
-        </form>
+        {(!isSequenceComplete && !terminalTimedOut) ? (
+          <form onSubmit={handleCommand} className="terminal-input-line">
+            <span>{'>'}</span>
+            <input 
+              type="text" 
+              value={input} 
+              onChange={(e) => setInput(e.target.value)} 
+              autoFocus
+              disabled={terminalTimedOut}
+            />
+          </form>
+        ) : (
+          <button className="next-button" onClick={onComplete}>[ NEXT ]</button>
+        )}
       </div>
     </div>
   );

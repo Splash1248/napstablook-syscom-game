@@ -27,13 +27,13 @@ function Dialogue({ taskType, onComplete }) {
 
     const timer = setTimeout(() => {
       onComplete();
-    }, 2500);
+    }, 4000);
 
     return () => clearTimeout(timer);
   }, [taskType]); // Removed onComplete to prevent infinite re-renders
 
   return (
-    <div className="screen-container">
+    <div className="screen-container" onClick={onComplete} style={{cursor: 'pointer'}}>
       <div className="bg-overlay"></div>
       <div className="content-layer dialogue-phase">
         <div className="enemy-sprite-container" style={{ flexGrow: 0, marginTop: '50px' }}>
@@ -41,6 +41,7 @@ function Dialogue({ taskType, onComplete }) {
         </div>
         <div className="dialogue-bubble">
           {text}
+          <div style={{fontSize: '0.8rem', color: '#666', marginTop: '10px'}}>(Click anywhere to continue)</div>
         </div>
       </div>
     </div>

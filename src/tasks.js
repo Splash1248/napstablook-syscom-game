@@ -1,28 +1,37 @@
 export const FIGHT_TASKS = [
   {
-    id: "fight_a",
-    prompt: "Napstablook's ghost shell is active somewhere on the subnet 10.0.0.0/24. Discover the target host, audit its listening services, and inject a payload into the vulnerable daemon.",
+    id: "fight_1",
+    prompt: "Napstablook's ghost shell is active somewhere on subnet 10.0.0.0/24. Discover the target host, audit its open ports, and compromise the vulnerable listener.",
     steps: [
-      { cmd: "networkscan 10.0.0.0/24", output: "Active host found: 10.0.0.42 (napstablook-core.local)" },
-      { cmd: "portscan 10.0.0.42", output: "Port 8080/tcp OPEN: Melancholy-Proxy (Vulnerable to RCE CVE-2024-BLLOK)" },
-      { cmd: "exploit 10.0.0.42 8080", output: "[PWNED] Remote code execution achieved. Ghost defenses disrupted!" }
+      { cmd: "networkscan 10.0.0.0/24", output: "Active host discovered: 10.0.0.42 (napstablook-core.local)" },
+      { cmd: "portscan 10.0.0.42", output: "Port 8080/tcp OPEN: Melancholy-Proxy (Vulnerable to RCE)" },
+      { cmd: "exploit 10.0.0.42 8080", output: "[PWNED] Remote shell acquired. Napstablook loses 25% HP!" }
     ]
   },
   {
-    id: "fight_b",
-    prompt: "A stealth listener is running on 10.0.0.66. Perform a full probe to uncover unlisted backend ports, inspect the manifest of the exposed service, and exploit the exposed daemon.",
+    id: "fight_2",
+    prompt: "A stealth listener is running on 10.0.0.66. Perform a full probe to uncover unlisted backend ports, inspect the manifest of the exposed service, and compromise the daemon.",
     steps: [
       { cmd: "fullscan 10.0.0.66", output: "Filtered ports bypassed. Port 31337/tcp: exposed service 'ghoul-rpc'" },
-      { cmd: "inspect ghoul-rpc", output: "[MANIFEST] ghoul-rpc running unauthenticated. Insecure debug listener bound on port 31337." },
-      { cmd: "exploit 10.0.0.66 31337", output: "[PWNED] ghoul-rpc compromised. Shell established!" }
+      { cmd: "inspect ghoul-rpc", output: "[MANIFEST] ghoul-rpc unauthenticated debug listener bound on port 31337." },
+      { cmd: "exploit 10.0.0.66 31337", output: "[PWNED] ghoul-rpc hijacked. Napstablook loses 25% HP!" }
     ]
   },
   {
-    id: "fight_c",
-    prompt: "Unencrypted authentication traffic has been spotted from host 10.0.0.88. Intercept the live connection to capture the cleartext token, then run an exploit on SSH port 22 using the discovered token.",
+    id: "fight_3",
+    prompt: "Unencrypted authentication traffic detected from host 10.0.0.88. Intercept the live connection to capture credentials, then exploit port 22 with the extracted token.",
     steps: [
       { cmd: "intercept 10.0.0.88", output: "Packet captured [SRC: 10.0.0.88 DST: 10.0.0.1]. Payload: 'AUTH_KEY=ghost_root_9921'" },
-      { cmd: "exploit 10.0.0.88 22", output: "[SUCCESS] Token 'ghost_root_9921' accepted. Root session granted!" }
+      { cmd: "exploit 10.0.0.88 22", output: "[SUCCESS] Token accepted on SSH port 22. Napstablook loses 25% HP!" }
+    ]
+  },
+  {
+    id: "fight_4",
+    prompt: "Napstablook is routing traffic through gateway 10.0.0.1 from target host 10.0.0.99. Poison the ARP routing table between the gateway and host, then deploy an exploit against the intercepted session.",
+    steps: [
+      { cmd: "tracepath 10.0.0.99", output: "Hop 1: 10.0.0.1 (Gateway) -> Hop 2: 10.0.0.99 (Target). Route unencrypted." },
+      { cmd: "mitm 10.0.0.1 10.0.0.99", output: "[ARP SPOOF SUCCESS] Traffic redirected through local interface. Port 9000 exposed." },
+      { cmd: "exploit 10.0.0.99 9000", output: "[PWNED] Route hijacked and session dropped. Napstablook takes final blow (HP: 0%)!" }
     ]
   }
 ];

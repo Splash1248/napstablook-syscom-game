@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { ACT_TASKS, FIGHT_TASKS } from '../tasks';
+import NarratorBox from './NarratorBox';
 
-function BattleUI({ hp, maxHp, onTaskSelect, setGameState }) {
+function BattleUI({ playerName, hp, maxHp, bossHp, lastCompletedTask, onTaskSelect, setGameState }) {
   const [menuState, setMenuState] = useState('MAIN'); // MAIN, ACT_MENU
 
   const handleFight = () => {
@@ -16,18 +17,27 @@ function BattleUI({ hp, maxHp, onTaskSelect, setGameState }) {
   };
 
   return (
-    <div className="screen-container">
-      <div className="bg-overlay"></div>
+    <>
+      <div className="screen-container">
+        <div className="bg-overlay"></div>
       <div className="content-layer battle-ui">
         
-        <div className="enemy-sprite-container">
-          <img src="/assets/Sprites/napstablook.png" alt="Napstablook" className="enemy-sprite" />
+        <div className="enemy-sprite-container" style={{flexDirection: 'column'}}>
+          <img src="/assets/Sprites/napstablook.png" alt="Napstablook" className="enemy-sprite" style={{opacity: bossHp > 0 ? 1 : 0, transition: 'opacity 2s'}} />
+          {bossHp > 0 && (
+            <div className="boss-hp-container">
+              <span>NAPSTABLOOK HP</span>
+              <div className="boss-hp-bar">
+                <div className="boss-hp-fill" style={{ width: `${bossHp}%` }}></div>
+              </div>
+            </div>
+          )}
         </div>
 
         {menuState === 'MAIN' ? (
           <>
             <div className="hud">
-              <div>NAPSTABLOOK</div>
+              <div>{playerName || 'PLAYER'}</div>
               <div className="hp-bar-container">
                 <span>HP</span>
                 <div className="hp-bar-bg">
@@ -43,7 +53,7 @@ function BattleUI({ hp, maxHp, onTaskSelect, setGameState }) {
             </div>
           </>
         ) : (
-          <div className="sub-menu">
+          <div className="sub-menu" style={{ overflowY: 'auto' }}>
             <h2>ACT</h2>
             <button onClick={() => handleActSelect('check')}>* Check</button>
             <button onClick={() => handleActSelect('flirt')}>* Flirt</button>
@@ -54,7 +64,9 @@ function BattleUI({ hp, maxHp, onTaskSelect, setGameState }) {
         )}
 
       </div>
-    </div>
+      </div>
+      <NarratorBox phase={menuState} currentTask={lastCompletedTask} />
+    </>
   );
 }
 

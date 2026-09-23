@@ -4,6 +4,7 @@ import BattleUI from './components/BattleUI'
 import Terminal from './components/Terminal'
 import Dialogue from './components/Dialogue'
 import CanvasDodger from './components/CanvasDodger'
+import NarratorBox from './components/NarratorBox'
 import './App.css'
 
 function App() {
@@ -13,11 +14,14 @@ function App() {
   const [hp, setHp] = useState(20)
   const maxHp = 20
 
+  const [bossHp, setBossHp] = useState(100)
   const [fightSuccesses, setFightSuccesses] = useState(0)
   const [actSuccesses, setActSuccesses] = useState(0)
   const [currentTask, setCurrentTask] = useState(null)
+  const [lastCompletedTask, setLastCompletedTask] = useState(null)
   const [taskIndices, setTaskIndices] = useState({ fight: -1, check: -1, flirt: -1, threat: -1, cheer: -1 })
   const [isEndingDialogue, setIsEndingDialogue] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
 
   const [globalTimeRemaining, setGlobalTimeRemaining] = useState(600)
   const [terminalTimeRemaining, setTerminalTimeRemaining] = useState(150)
@@ -50,7 +54,6 @@ function App() {
         setTerminalTimeRemaining((prev) => {
           if (prev <= 1) {
             setTerminalTimedOut(true);
-            setGameState('DIALOGUE_PHASE');
             return 0;
           }
           return prev - 1;
@@ -81,19 +84,22 @@ function App() {
       }
     } else {
       setFightSuccesses(prev => prev + 1);
+      setBossHp(prev => Math.max(0, prev - 25));
       fightWon += 1;
     }
     
-    if (fightWon >= 2 || actWon >= 3) {
+    setLastCompletedTask(currentTask);
+    
+    if (fightWon >= 4 || actWon >= 3) {
       setIsEndingDialogue(true);
     }
     
     setGameState('DIALOGUE_PHASE');
   }
 
-  const handleHit = () => {
+  const handleHit = (damage = 4) => {
     setHp(prev => {
-      const newHp = prev - 4;
+      const newHp = prev - damage;
       if (newHp <= 0) {
         setGameState('GAME_OVER');
         return 0;
@@ -103,7 +109,7 @@ function App() {
   }
 
   const handleEnemyTurnComplete = () => {
-    if (fightSuccesses >= 2 || actSuccesses >= 3) {
+    if (fightSuccesses >= 4 || actSuccesses >= 3) {
       setGameState('VICTORY');
     } else {
       setGameState('PLAYER_TURN');
@@ -133,8 +139,11 @@ function App() {
 
       {gameState === 'PLAYER_TURN' && (
         <BattleUI
+          playerName={playerName}
           hp={hp}
           maxHp={maxHp}
+          bossHp={bossHp}
+          lastCompletedTask={lastCompletedTask}
           onTaskSelect={handleTaskSelect}
           setGameState={setGameState}
         />
@@ -148,7 +157,30 @@ function App() {
           <Terminal
             task={currentTask}
             onComplete={handleTaskComplete}
+            setHelpOpen={setHelpOpen}
+            terminalTimedOut={terminalTimedOut}
           />
+          {helpOpen && (
+            <div className="side-panel">
+              <h3>SYSTEM COMMAND MANUAL</h3>
+              <p><strong>fullscan &lt;ip&gt;</strong>: Aggressive host audit</p>
+              <p><strong>networkscan &lt;subnet&gt;</strong>: Discovers live hosts</p>
+              <p><strong>portscan &lt;ip&gt;</strong>: Quick audit</p>
+              <p><strong>exploit &lt;ip&gt; &lt;port&gt;</strong>: Executes known payload</p>
+              <p><strong>intercept &lt;ip&gt;</strong>: Sniffs cleartext</p>
+              <p><strong>mitm &lt;gw&gt; &lt;ip&gt;</strong>: Injects spoofed ARP</p>
+              <p><strong>tracepath &lt;ip&gt;</strong>: Maps hop-by-hop</p>
+              <p><strong>syscheck</strong>: Prints env vars</p>
+              <p><strong>inspect &lt;srv&gt;</strong>: Reads config</p>
+              <p><strong>scale &lt;srv&gt; &lt;n&gt;</strong>: Adjusts replicas</p>
+              <p><strong>rollback &lt;srv&gt;</strong>: Reverts release</p>
+              <p><strong>restart &lt;srv&gt;</strong>: Cycles process</p>
+              <p><strong>readlogs &lt;srv&gt;</strong>: Streams logs</p>
+              <p><strong>patch &lt;srv&gt;</strong>: Injects code update</p>
+              <p><strong>dummyping &lt;ip&gt;</strong>: Sends ICMP echo</p>
+              <p><strong>clear</strong>: Flushes buffer</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -160,12 +192,18 @@ function App() {
       )}
 
       {gameState === 'ENEMY_TURN' && (
-        <CanvasDodger
-          hp={hp}
-          maxHp={maxHp}
-          onHit={handleHit}
-          onComplete={handleEnemyTurnComplete}
-        />
+        <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <CanvasDodger
+            hp={hp}
+            maxHp={maxHp}
+            onHit={handleHit}
+            onComplete={handleEnemyTurnComplete}
+          />
+          <div className="side-panel" style={{ height: 'auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <h3>USE ARROW KEYS TO DODGE</h3>
+            <img src="/assets/Sprites/arrow_keys.png" alt="Arrow Keys" style={{width: '180px', marginTop: '30px'}} />
+          </div>
+        </div>
       )}
 
       {gameState === 'GAME_OVER' && (
@@ -192,9 +230,9 @@ function App() {
             <div style={{ margin: '30px 0', textAlign: 'left', lineHeight: '2' }}>
               <p>Time Taken: {formatTime(600 - globalTimeRemaining)}</p>
               <p>Final Score: {globalTimeRemaining}</p>
-              <p>Route: {fightSuccesses >= 2 ? 'Genocide' : 'Pacifist'}</p>
+              <p>Route: {fightSuccesses >= 4 ? 'Genocide' : 'Pacifist'}</p>
             </div>
-            {fightSuccesses >= 2 && (
+            {fightSuccesses >= 4 && (
               <p style={{ fontStyle: 'italic', color: '#ccc', marginBottom: '20px' }}>
                 "umm... you do know you cant kill ghosts, right?" - Napstablook
               </p>
