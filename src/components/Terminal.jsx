@@ -24,12 +24,12 @@ function Terminal({ task, onComplete, setHelpOpen, terminalTimedOut }) {
 
     switch (baseCmd) {
       case "fullscan": return `Scanning ${parts[1]}... 65535 ports probed. No unusual daemons or listeners identified.`;
-      case "networkscan": return `ARP sweep complete on ${parts[1]}. 1 active host responding: 10.0.0.66.`;
+      case "networkscan": return `ARP sweep complete on ${parts[1]}. Unfathomable Output: @#$75%&^ *()_+~ {-=[]}| ;':",./<>? x00x07x1b`;
       case "portscan": return `Port audit complete for ${parts[1]}. Ports 80, 443 filtered. No high-risk vectors detected.`;
       case "exploit": return `Failed to inject payload into ${parts[1]}:${parts[2] || ''}. Connection refused or target service immune.`;
       case "intercept": return `Sniffing interface for ${parts[1]}... 0 plaintext tokens detected in sliding window.`;
       case "mitm": return `Sending spoofed ARP frames... Gateway rejected frame reassignment.`;
-      case "tracepath": return `1: 10.0.0.1 (0.8ms) -> 2: 10.0.0.66 (1.2ms). Path MTU: 1500.`;
+      case "tracepath": return `1: 10.0.0.1 (0.8ms) -> 2: ${parts[1]} (1.2ms). Path MTU: 1500.`;
       case "syscheck": return `[KERNEL] UnderOS 4.19.0-bloo | ARCH: x86_64 | RUNLEVEL: 3 | ENV: PROFILE=prod`;
       case "inspect": return `[CONFIG] ${parts[1]}: Target unit not registered or daemon inactive.`;
       case "scale": return `[SCALING] ${parts[1]} replica configuration set to ${parts[2] || '0'}. Metric balance nominal.`;
@@ -70,7 +70,7 @@ function Terminal({ task, onComplete, setHelpOpen, terminalTimedOut }) {
     const currentExpectedStep = task.steps[stepIndex];
     let isMatch = false;
     let matchedOutput = "";
-    
+
     // Superset Logic for portscan -> fullscan
     if (currentExpectedStep && currentExpectedStep.cmd.startsWith("portscan")) {
       const targetIp = currentExpectedStep.cmd.split(" ")[1];
@@ -89,7 +89,7 @@ function Terminal({ task, onComplete, setHelpOpen, terminalTimedOut }) {
       newOutput.push(matchedOutput);
       const nextStep = stepIndex + 1;
       setStepIndex(nextStep);
-      
+
       if (nextStep >= task.steps.length) {
         newOutput.push("TASK SEQUENCE COMPLETE. Awaiting next phase...");
         setOutput(newOutput);
@@ -131,10 +131,10 @@ function Terminal({ task, onComplete, setHelpOpen, terminalTimedOut }) {
         {(!isSequenceComplete && !terminalTimedOut) ? (
           <form onSubmit={handleCommand} className="terminal-input-line">
             <span>{'>'}</span>
-            <input 
-              type="text" 
-              value={input} 
-              onChange={(e) => setInput(e.target.value)} 
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
               autoFocus
               disabled={terminalTimedOut}
             />

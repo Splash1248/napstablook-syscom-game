@@ -41,7 +41,7 @@ function App() {
   const [globalTimeRemaining, setGlobalTimeRemaining] = useState(600)
   const [terminalTimeRemaining, setTerminalTimeRemaining] = useState(150)
   const [terminalTimedOut, setTerminalTimedOut] = useState(false)
-  
+
   const audioRef = useRef(null)
 
   // Global Timer Hook
@@ -106,7 +106,7 @@ function App() {
   const handleTaskComplete = () => {
     let actWon = actSuccesses;
     let fightWon = fightSuccesses;
-    
+
     if (currentTask.type) {
       if (currentTask.type === 'cheer') {
         setActSuccesses(prev => prev + 1);
@@ -117,13 +117,13 @@ function App() {
       setBossHp(prev => Math.max(0, prev - 25));
       fightWon += 1;
     }
-    
+
     setLastCompletedTask(currentTask);
-    
+
     if (fightWon >= 4 || actWon >= 3) {
       setIsEndingDialogue(true);
     }
-    
+
     setGameState('DIALOGUE_PHASE');
   }
 
@@ -136,6 +136,27 @@ function App() {
       }
       return newHp;
     });
+  }
+
+  const encryptScore = (score) => {
+    if (score < 0 || score > 100) return "ERROR!";
+    const CHARSET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const PRIME = 381001;
+    const SECRET_KEY = 98765;
+
+    let v = (score * PRIME) + SECRET_KEY;
+    let codeArray = new Array(6);
+    let base36Power = 1;
+
+    for (let i = 0; i < 6; i++) {
+      let d = Math.floor(v / base36Power) % 36;
+      let c = (d + SECRET_KEY + i) % 36;
+      if (c < 0) c += 36;
+      codeArray[i] = CHARSET[c];
+      base36Power *= 36;
+    }
+
+    return codeArray.join("");
   }
 
   const handleEnemyTurnComplete = () => {
@@ -198,7 +219,7 @@ function App() {
               <p><strong>portscan &lt;ip&gt;</strong>: Quick audit</p>
               <p><strong>exploit &lt;ip&gt; &lt;port&gt;</strong>: Executes known payload</p>
               <p><strong>intercept &lt;ip&gt;</strong>: Sniffs cleartext</p>
-              <p><strong>mitm &lt;gw&gt; &lt;ip&gt;</strong>: Injects spoofed ARP</p>
+              <p><strong>mitm &lt;gateway&gt; &lt;ip&gt;</strong>: Injects spoofed ARP</p>
               <p><strong>tracepath &lt;ip&gt;</strong>: Maps hop-by-hop</p>
               <p><strong>syscheck</strong>: Prints env vars</p>
               <p><strong>inspect &lt;srv&gt;</strong>: Reads config</p>
@@ -232,7 +253,7 @@ function App() {
           />
           <div className="side-panel" style={{ height: 'auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <h3>USE ARROW KEYS TO DODGE</h3>
-            <img src="/assets/Sprites/arrow_keys.png" alt="Arrow Keys" style={{width: '180px', marginTop: '30px'}} />
+            <img src="/assets/Sprites/arrow_keys.png" alt="Arrow Keys" style={{ width: '180px', marginTop: '30px' }} />
           </div>
         </div>
       )}
@@ -247,6 +268,11 @@ function App() {
             ) : (
               <p>{playerName} ran out of time... Napstablook faded away into the darkness.</p>
             )}
+            <div style={{ margin: '30px 0', textAlign: 'left', lineHeight: '2' }}>
+              <p>Final Score: 0 / 100</p>
+              <p>Score Code: {encryptScore(0)}</p>
+              <p style={{ fontSize: '0.8rem', color: '#ccc' }}>(Paste this exact code onto the Reboot website)</p>
+            </div>
             <button onClick={() => window.location.reload()} style={{ marginTop: '40px' }}>RETRY</button>
           </div>
         </div>
@@ -261,6 +287,8 @@ function App() {
             <div style={{ margin: '30px 0', textAlign: 'left', lineHeight: '2' }}>
               <p>Time Taken: {formatTime(600 - globalTimeRemaining)}</p>
               <p>Final Score: {Math.round(globalTimeRemaining / 6)} / 100</p>
+              <p>Score Code: {encryptScore(Math.round(globalTimeRemaining / 6))}</p>
+              <p style={{ fontSize: '0.8rem', color: '#ccc' }}>(Paste this exact code onto the Reboot website)</p>
               <p>Route: {fightSuccesses >= 4 ? 'Genocide' : 'Pacifist'}</p>
             </div>
             {fightSuccesses >= 4 && (
